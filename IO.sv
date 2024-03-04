@@ -1,5 +1,5 @@
 module InputOutput (input logic CS,input logic OE,input logic WR,input RD,input bit RESET,input bit CLK,output logic [7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
-	bit MNMX;
+bit MNMX;
     bit TEST;
     bit READY;
     bit NMI ;
@@ -8,7 +8,8 @@ module InputOutput (input logic CS,input logic OE,input logic WR,input RD,input 
     logic [7:0] AD;
     logic [19:8] A;
     logic HLDA;
-    //logic IOM;
+
+
     logic SSO;
     logic INTA;
     logic DTR;
@@ -35,48 +36,48 @@ module InputOutput (input logic CS,input logic OE,input logic WR,input RD,input 
 
     always_ff @(posedge CLK) begin
         if (RESET) begin
-            State <= IDLE; 
-		end
+            State <= IDLE;
+        end
         else
             State <= NextState;
     end
-	
+
     always_comb begin
-	if(IOM) begin
         NextState = State;
         case (State)
-            IDLE:   begin 
-					if (ALE) begin
+            IDLE: begin
+                    if (IOM && ALE) begin
                         NextState = VALID;
-					end
+                    end
                     else
                         NextState = IDLE;
-					end
+                 end
 
             VALID:  if (!RD) begin
                         NextState = READ;
-						end
-                    else 
+                    end
+                    else if(WR==0) begin
                         NextState = WRITE;
-						
-            READ:   NextState = HALT;
-            
-            WRITE:  NextState = HALT;
-            
-            HALT:   NextState = VALID;
+                    end
+
+            READ:   if(RD)
+                       NextState = HALT;
+           
+            WRITE:  if(WR)
+                       NextState = HALT;
+           
+            HALT:   if(ALE)
+                       NextState = VALID;
         endcase
-		end
     end
 
     always_comb begin
-		if(IOM) begin
         case (State)
             READ:   Data = memory[Address];
-            
+           
             WRITE:  memory[Address] = cpu_time;
-            
+           
             default: Data = 'z;
         endcase
-    end
-	end
+end
 endmodule
