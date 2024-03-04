@@ -1,5 +1,5 @@
 module MEMORY (input logic CS,input logic OE,input logic WR,input RD,input bit RESET,input bit CLK,output logic [7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
-	bit MNMX;
+bit MNMX;
     bit TEST;
     bit READY;
     bit NMI ;
@@ -34,47 +34,48 @@ module MEMORY (input logic CS,input logic OE,input logic WR,input RD,input bit R
 
     always_ff @(posedge CLK) begin
         if (RESET) begin
-            State <= IDLE; 
-		end
+            State <= IDLE;
+        end
         else
             State <= NextState;
     end
+	
     always_comb begin
-		if(!IOM) begin
         NextState = State;
         case (State)
-            IDLE:   begin 
-					if (ALE) begin
-                        NextState = VALID;
-					end
-                    else
-                        NextState = IDLE;
-					end
+            IDLE: begin
+                     if (ALE && !IOM) begin
+                         NextState = VALID;
+                     end
+                     else
+                         NextState = IDLE;
+                  end
 
-            VALID:  if (!RD) begin
+             VALID:  if (!RD) begin
                         NextState = READ;
-						end
-                    else 
+                     end
+                     else if(WR==0) begin
                         NextState = WRITE;
-						
-            READ:   NextState = HALT;
-            
-            WRITE:  NextState = HALT;
-            
-            HALT:   NextState = VALID;
+                     end
+
+            READ:   if(RD)
+                       NextState = HALT;
+           
+            WRITE:  if(WR)
+                       NextState = HALT;
+           
+            HALT:   if(ALE==1)
+                       NextState = IDLE;
         endcase
-		end
     end
 
     always_comb begin
-		if(!IOM) begin
         case (State)
             READ:   Data = memory[Address];
-            
+           
             WRITE:  memory[Address] = cpu_time;
-            
+           
             default: Data = 'z;
         endcase
-    end
-	end
+end
 endmodule
