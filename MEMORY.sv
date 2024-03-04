@@ -41,7 +41,6 @@ module MEMORY (input logic CS,input logic OE,input logic WR,input RD,input bit R
     end
     always_comb begin
 		if(!IOM) begin
-		$display("bye");
         NextState = State;
         case (State)
             IDLE:   begin 
