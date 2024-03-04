@@ -1,4 +1,4 @@
-module InputOutput (input logic CS,input logic OE,input logic WR,input RD,input bit RESET,input bit CLK,output logic [7:0] Data,input logic ALE,input logic [19:0] Address);
+module InputOutput (input logic CS,input logic OE,input logic WR,input RD,input bit RESET,input bit CLK,output logic [7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
 	bit MNMX;
     bit TEST;
     bit READY;
@@ -8,7 +8,7 @@ module InputOutput (input logic CS,input logic OE,input logic WR,input RD,input 
     logic [7:0] AD;
     logic [19:8] A;
     logic HLDA;
-    logic IOM;
+    //logic IOM;
     logic SSO;
     logic INTA;
     logic DTR;
@@ -43,7 +43,6 @@ module InputOutput (input logic CS,input logic OE,input logic WR,input RD,input 
 	
     always_comb begin
 	if(IOM) begin
-		$display("hi");
         NextState = State;
         case (State)
             IDLE:   begin 
