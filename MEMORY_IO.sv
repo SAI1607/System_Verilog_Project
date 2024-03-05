@@ -1,4 +1,4 @@
-module MEMORY_IO (input logic CS,input logic OE,input logic WR,input RD,input bit RESET,input bit CLK,output logic [7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
+module MEMORY_IO (input logic CS,output logic OE,input logic WR,input RD,input bit RESET,input bit CLK,output logic [7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
 	bit MNMX;
     bit TEST;
     bit READY;
@@ -14,14 +14,13 @@ module MEMORY_IO (input logic CS,input logic OE,input logic WR,input RD,input bi
     logic DEN;
     int cpu_time;
     logic [7:0] memory [0:1048575];
-    typedef enum logic [6:0] {
-        IDLE = 7'b0000001,
-        IO_READ = 7'b0000010,
-        IO_WRITE = 7'b0000100,
-        MEMORY_READ = 7'b0001000,
-        MEMORY_WRITE = 7'b0010000,
-		IO = 7'b0100000,
-		MEMORY = 7'b1000000
+    typedef enum logic [5:0] {
+        IDLE = 6'b000001,
+        READ = 6'b000010,
+        WRITE = 6'b000100,
+		IO = 6'b001000,
+		MEMORY = 6'b0100000,
+		FINAL = 6'b1000000
     } State_t;
 
     State_t State, NextState;
@@ -44,7 +43,7 @@ module MEMORY_IO (input logic CS,input logic OE,input logic WR,input RD,input bi
     always_comb begin
         NextState = State;
         case (State)
-            IDLE:   begin 
+            IDLE:                       begin 
 						if (ALE && IOM) begin
 							NextState = IO;
 						end
@@ -52,37 +51,37 @@ module MEMORY_IO (input logic CS,input logic OE,input logic WR,input RD,input bi
 							NextState = MEMORY;
 						end
 					end
-			IO: if(!RD) begin
-					NextState = IO_READ;
-				end
-				else if(!WR) begin
-					NextState = IO_WRITE;
-				end	
-			MEMORY: if(!RD) begin
-						NextState = MEMORY_READ;
+	    IO:   		        if(!RD) begin
+						NextState = READ;
 					end
 					else if(!WR) begin
-						NextState = MEMORY_WRITE;
+						NextState = WRITE;
 					end	
-            IO_READ:  NextState = IDLE;
+	    MEMORY: 			if(!RD) begin
+						NextState = READ;
+					end
+					else if(!WR) begin
+						NextState = WRITE;
+					end	
+            READ:  NextState = FINAL;
 						
-            IO_WRITE:   NextState = IDLE;
-            
-            MEMORY_READ:  NextState = IDLE;
-            
-            MEMORY_WRITE:	NextState = IDLE;
+            WRITE:   NextState = FINAL;
+			
+	    FINAL : NextState = IDLE;
         endcase
     end
 
     always_comb begin
+	{OE}='0;
         case (State)
-            IO_READ:   Data = memory[Address];
-            
-            IO_WRITE:  memory[Address] = cpu_time && 'hFF;
-			
-			MEMORY_READ:   Data = memory[Address];
-            
-            MEMORY_WRITE:  memory[Address] = cpu_time && 'hFF;
+	    IDLE:      Data='z; 
+	
+	    READ:   	begin 
+				Data = memory[Address];
+				OE='1;
+			end	
+
+            WRITE:      memory[Address] = cpu_time && 'hFF; 
         endcase
 	end
 endmodule
