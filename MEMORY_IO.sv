@@ -14,12 +14,14 @@ module MEMORY_IO (input logic CS,input logic OE,input logic WR,input RD,input bi
     logic DEN;
     int cpu_time;
     logic [7:0] memory [0:1048575];
-    typedef enum logic [4:0] {
-        IDLE = 5'b00001,
-        IO_READ = 5'b00010,
-        IO_WRITE = 5'b00100,
-        MEMORY_READ = 5'b01000,
-        MEMORY_WRITE = 5'b10000
+    typedef enum logic [6:0] {
+        IDLE = 7'b0000001,
+        IO_READ = 7'b0000010,
+        IO_WRITE = 7'b0000100,
+        MEMORY_READ = 7'b0001000,
+        MEMORY_WRITE = 7'b0010000,
+		IO = 7'b0100000,
+		MEMORY = 7'b1000000
     } State_t;
 
     State_t State, NextState;
@@ -43,24 +45,25 @@ module MEMORY_IO (input logic CS,input logic OE,input logic WR,input RD,input bi
         NextState = State;
         case (State)
             IDLE:   begin 
-					if (ALE && IOM) begin
-						if(!RD) begin
-							NextState = IO_READ;
+						if (ALE && IOM) begin
+							NextState = IO;
 						end
-						else begin
-							NextState = IO_WRITE;
-						end	
-					end
-                   			else if (ALE && !IOM) begin
-						if(!RD) begin
-							NextState = MEMORY_READ;
+						else if (ALE && !IOM) begin
+							NextState = MEMORY;
 						end
-						else begin
-							NextState = MEMORY_WRITE;
-						end	
 					end
+			IO: if(!RD) begin
+					NextState = IO_READ;
+				end
+				else if(!WR) begin
+					NextState = IO_WRITE;
+				end	
+			MEMORY: if(!RD) begin
+						NextState = MEMORY_READ;
 					end
-
+					else if(!WR) begin
+						NextState = MEMORY_WRITE;
+					end	
             IO_READ:  NextState = IDLE;
 						
             IO_WRITE:   NextState = IDLE;
