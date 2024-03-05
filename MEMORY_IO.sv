@@ -51,7 +51,7 @@ module MEMORY_IO (input logic CS,input logic OE,input logic WR,input RD,input bi
 							NextState = IO_WRITE;
 						end	
 					end
-                    else begin
+                   			else if (ALE && !IOM) begin
 						if(!RD) begin
 							NextState = MEMORY_READ;
 						end
