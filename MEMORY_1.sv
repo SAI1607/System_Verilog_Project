@@ -62,7 +62,7 @@ module MEMORY_1 #(parameter VALID=0)(input logic CS,input logic WR,input RD,inpu
     end
 
     always_comb begin
-	{LOAD}='0;
+	{OE,LOAD}='0;
         case (State) 
 			
 			T3R:   begin 

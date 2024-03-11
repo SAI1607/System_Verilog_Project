@@ -61,7 +61,7 @@ module IO_2 #(parameter VALID=1)(input logic CS,input logic WR,input RD,input bi
     end
 
     always_comb begin
-	{LOAD}='0;
+	{OE,LOAD}='0;
         case (State) 
 			
 			T3R:   begin 
