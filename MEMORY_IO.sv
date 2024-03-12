@@ -1,87 +1,74 @@
-module MEMORY_IO (input logic CS,output logic OE,input logic WR,input RD,input bit RESET,input bit CLK,output logic [7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
-	bit MNMX;
-    bit TEST;
-    bit READY;
-    bit NMI ;
-    bit INTR;
-    bit HOLD;
-    logic [7:0] AD;
-    logic [19:8] A;
-    logic HLDA;
-    logic SSO;
-    logic INTA;
-    logic DTR;
-    logic DEN;
-    int cpu_time;
+module MEMORY_IO #(parameter VALID=1)(input logic CS,input logic WR,input RD,input bit RESET,input bit CLK,inout logic[7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
+	logic LOAD;
+	logic OE;
     logic [7:0] memory [0:1048575];
-    typedef enum logic [5:0] {
-        IDLE = 6'b000001,
-        READ = 6'b000010,
-        WRITE = 6'b000100,
-		IO = 6'b001000,
-		MEMORY = 6'b0100000,
-		FINAL = 6'b1000000
+	logic [7:0] datain;
+    typedef enum logic [4:0] {
+        T1 = 5'b00000,
+        T2 = 5'b00010,
+        T3R = 5'b00100,
+		T3W = 5'b01000,
+		T4 = 5'b10000
     } State_t;
 
     State_t State, NextState;
-
-    always @(posedge CLK) begin
-        cpu_time=cpu_time+1;
-    end
-
+	assign datain = memory[Address];
+	assign Data = OE ? datain : 'z;
+    
     initial begin
-        cpu_time=0;
+        $readmemh("Mem1.txt",memory);
     end
 
+	always@(posedge CLK) begin
+	 if(LOAD) begin	
+		memory[Address] = Data;
+	 end
+     else begin
+		memory[Address]=memory[Address];
+	 end	 
+	end
     always_ff @(posedge CLK) begin
         if (RESET) begin
-            State <= IDLE; 
+            State <= T1; 
 		end
         else
             State <= NextState;
     end
     always_comb begin
         NextState = State;
-        case (State)
-            IDLE:                       begin 
-						if (ALE && IOM) begin
-							NextState = IO;
-						end
-						else if (ALE && !IOM) begin
-							NextState = MEMORY;
+        unique case (State)
+            T1:  begin 
+						if (CS&&ALE&&(IOM==VALID)) begin
+							NextState = T2;
 						end
 					end
-	    IO:   		        if(!RD) begin
-						NextState = READ;
+			T2:  begin
+						if(!RD) 
+						begin
+							NextState = T3R;
+						end
+						else if(!WR) 
+						begin
+							NextState = T3W;
+						end	
 					end
-					else if(!WR) begin
-						NextState = WRITE;
-					end	
-	    MEMORY: 			if(!RD) begin
-						NextState = READ;
-					end
-					else if(!WR) begin
-						NextState = WRITE;
-					end	
-            READ:  NextState = FINAL;
+			T3R: 	NextState = T4;
 						
-            WRITE:   NextState = FINAL;
+            T3W:  NextState = T4;
 			
-	    FINAL : NextState = IDLE;
+			T4 : NextState = T1;
         endcase
     end
 
     always_comb begin
-	{OE}='0;
-        case (State)
-	    IDLE:      Data='z; 
-	
-	    READ:   	begin 
-				Data = memory[Address];
-				OE='1;
-			end	
-
-            WRITE:      memory[Address] = cpu_time && 'hFF; 
+	{OE,LOAD}='0;
+        case (State) 
+			
+			T3R:    begin 
+						OE='1;
+					end	
+            
+            T3W:  LOAD='1; 
         endcase
 	end
 endmodule
