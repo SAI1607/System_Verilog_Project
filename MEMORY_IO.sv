@@ -1,36 +1,36 @@
-module MEMORY_IO #(parameter VALID=1)(input logic CS,input logic WR,input RD,input bit RESET,input bit CLK,inout logic[7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
+module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=8)(input logic CS,input logic WR,input RD,input bit RESET,input bit CLK,inout logic[7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
 	logic LOAD;
 	logic OE;
-    logic [7:0] memory [0:1048575];
+    logic [data_bits-1:0] memory [(2**addr_bits)-1:0];
 	logic [7:0] datain;
     typedef enum logic [4:0] {
         T1 = 5'b00000,
         T2 = 5'b00010,
         T3R = 5'b00100,
-	T3W = 5'b01000,
-	T4 = 5'b10000
+		T3W = 5'b01000,
+		T4 = 5'b10000
     } State_t;
 
     State_t State, NextState;
-    assign datain = memory[Address];
-    assign Data = OE ? datain : 'z;
+	assign datain = memory[Address];
+	assign Data = OE ? datain : 'z;
     
     initial begin
         $readmemh("Mem1.txt",memory);
     end
 
-    always@(posedge CLK) begin
-	if(LOAD) begin	
-	    memory[Address] = Data;
+	always@(posedge CLK) begin
+	 if(LOAD) begin	
+		memory[Address] = Data;
+	 end
+     else begin
+		memory[Address]=memory[Address];
+	 end	 
 	end
-        else begin
-	    memory[Address]=memory[Address];
-	end	 
-    end
     always_ff @(posedge CLK) begin
         if (RESET) begin
             State <= T1; 
-	end
+		end
         else
             State <= NextState;
     end
@@ -38,35 +38,37 @@ module MEMORY_IO #(parameter VALID=1)(input logic CS,input logic WR,input RD,inp
         NextState = State;
         unique case (State)
             T1:  begin 
-		     if (CS&&ALE&&(IOM==VALID)) begin
-		         NextState = T2;
-		     end
-		 end
-	    T2:  begin
-		   if(!RD) 
-		       begin
-			  NextState = T3R;
-		       end
-		   else if(!WR) 
-		       begin
-			  NextState = T3W;
-		       end	
-		 end
-	     T3R: NextState = T4;
+						if (CS&&ALE&&(IOM==VALID)) begin
+							NextState = T2;
+						end
+					end
+			T2:  begin
+						if(!RD) 
+						begin
+							NextState = T3R;
+						end
+						else if(!WR) 
+						begin
+							NextState = T3W;
+						end	
+					end
+			T3R: 	NextState = T4;
 						
-             T3W: NextState = T4;
+            T3W:  NextState = T4;
 			
-	     T4 : NextState = T1;
+			T4 : NextState = T1;
         endcase
     end
 
     always_comb begin
 	{OE,LOAD}='0;
         case (State) 
-	      T3R:begin 
-		    OE='1;
-	          end	
-              T3W: LOAD='1; 
+			
+			T3R:    begin 
+						OE='1;
+					end	
+            
+            T3W:  LOAD='1; 
         endcase
-    end
+	end
 endmodule

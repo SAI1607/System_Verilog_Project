@@ -21,27 +21,22 @@ logic INTA;
 logic ALE;
 logic DTR;
 logic DEN;
-logic CS_0,CS_1,CS_2,CS_3;
+logic [3:0] CS;
 logic OE;
 logic [19:0] Address;
 wire [7:0]  Data;
 
 
 Intel8088 P(CLK, MNMX, TEST, RESET, READY, NMI, INTR, HOLD, AD, A, HLDA, IOM, WR, RD, SSO, INTA, ALE, DTR, DEN);
-/*MEMORY_1 #(0) M1(.CS(CS_0),.Data(Data),.*);
-MEMORY_2 #(0) M2(.CS(CS_1),.Data(Data),.RD(RD),.WR(WR),.Address(Address),.*);
-IO_1 #(1) I1(.CS(CS_2),.*);
-IO_2 #(1) I2(.CS(CS_3),.*);*/
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8)) M1(.CS(CS[0]),.*);
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8)) M2(.CS(CS[1]),.*);
+MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8)) I1(.CS(CS[2]),.*);
+MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8)) I2(.CS(CS[3]),.*);
 
-MEMORY_IO #(0) M1(.CS(CS_0),.Data(Data),.*);
-MEMORY_IO #(0) M2(.CS(CS_1),.Data(Data),.RD(RD),.WR(WR),.Address(Address),.*);
-MEMORY_IO #(1) I1(.CS(CS_2),.*);
-MEMORY_IO #(1) I2(.CS(CS_3),.*);
-
-assign CS_0 = Address[19] == 1;
-assign CS_1 = Address[19] ==0;
-assign CS_2= Address[15:4] == 12'hFF0 ;
-assign CS_3= Address[15:9] == 7'h0E ;
+assign CS[0] = Address[19] == 1;
+assign CS[1] = Address[19] == 0;
+assign CS[2]= Address[15:4] == 12'hFF0 ;
+assign CS[3]= Address[15:9] == 7'h0E ;
 
 // 8282 Latch to latch bus address
 always_latch
