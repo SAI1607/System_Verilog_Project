@@ -1,4 +1,4 @@
-module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=8)(input logic CS,input logic WR,input RD,input bit RESET,input bit CLK,inout logic[7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
+module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=8,parameter file=0)(input logic CS,input logic WR,input RD,input bit RESET,input bit CLK,inout logic[7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
 	logic LOAD;
 	logic OE;
     logic [data_bits-1:0] memory [(2**addr_bits)-1:0];
@@ -15,9 +15,15 @@ module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=
 	assign datain = memory[Address];
 	assign Data = OE ? datain : 'z;
     
-    initial begin
-        $readmemh("Mem1.txt",memory);
-    end
+	initial begin
+		case(file)
+		0: $readmemh("TRACE_IO1.txt",memory);
+		1: $readmemh("TRACE_IO2.txt",memory);
+		2: $readmemh("TRACE_MEM1.txt",memory);
+		3: $readmemh("TRACE_MEM2.txt",memory);
+		default: $readmemh("Mem1.txt",memory);
+		endcase
+	end
 
 	always@(posedge CLK) begin
 	 if(LOAD) begin	

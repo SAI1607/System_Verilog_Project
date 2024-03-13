@@ -28,10 +28,10 @@ wire [7:0]  Data;
 
 
 Intel8088 P(CLK, MNMX, TEST, RESET, READY, NMI, INTR, HOLD, AD, A, HLDA, IOM, WR, RD, SSO, INTA, ALE, DTR, DEN);
-MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8)) M1(.CS(CS[0]),.*);
-MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8)) M2(.CS(CS[1]),.*);
-MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8)) I1(.CS(CS[2]),.*);
-MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8)) I2(.CS(CS[3]),.*);
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(2)) M1(.CS(CS[0]),.*);
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(3)) M2(.CS(CS[1]),.*);
+MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(0)) I1(.CS(CS[2]),.*);
+MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(1)) I2(.CS(CS[3]),.*);
 
 assign CS[0] = Address[19] == 1;
 assign CS[1] = Address[19] == 0;
