@@ -18,6 +18,7 @@ module IO_MEMORY (input bit CS, input bit WR,input bit RD,input bit RESET,input 
         cpu_time=cpu_time+1;
     end
 
+	
     initial begin
         cpu_time=0;
 		OE=0;
