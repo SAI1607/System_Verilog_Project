@@ -39,7 +39,7 @@ end
 assign Data =  (DTR & ~DEN) ? AD   : 'z;
 assign AD   = (~DTR & ~DEN) ? Data : 'z;
 
-
+	
 always #50 CLK = ~CLK;
 
 initial
