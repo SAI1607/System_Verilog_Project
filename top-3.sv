@@ -1,18 +1,13 @@
-module top;
-
-bit CLK = '0;
-bit MNMX = '1;
-bit TEST = '1;
-bit RESET = '0;
-bit READY = '1;
-bit NMI = '0;
-bit INTR = '0;
-bit HOLD = '0;
-
-wire logic [7:0] AD;
-logic [19:8] A;
+interface Intel8088Pins(input CLK,input RESET);
+logic MNMX='1;
+logic TEST='1;
+logic READY='1;
+logic NMI='0;
+logic INTR='0;
+logic HOLD='0;
 logic HLDA;
-//logic OE;
+tri [7:0] AD;
+tri [19:8] A;
 logic IOM;
 logic WR;
 logic RD;
@@ -21,34 +16,44 @@ logic INTA;
 logic ALE;
 logic DTR;
 logic DEN;
-logic [3:0] CS;
-logic OE;
 logic [19:0] Address;
 wire [7:0]  Data;
 
-	
+modport Processor(input CLK,input RESET,inout AD,output A,input HOLD,output IOM,output WR,output RD,output SSO,input READY,
+            input TEST,input MNMX,output DEN,output DTR,output ALE,output INTA,input INTR,input NMI,input HLDA);
+			
+modport Peripheral (input WR,input RD,input RESET,input CLK,inout Data,input ALE,input Address,input IOM);
 
-Intel8088 P(CLK, MNMX, TEST, RESET, READY, NMI, INTR, HOLD, AD, A, HLDA, IOM, WR, RD, SSO, INTA, ALE, DTR, DEN);
-MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(2)) M1(.CS(CS[0]),.*);
-MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(3)) M2(.CS(CS[1]),.*);
-MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(0)) I1(.CS(CS[2]),.*);
-MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(1)) I2(.CS(CS[3]),.*);
+			
+endinterface
 
-assign CS[0] = Address[19] == 1;
-assign CS[1] = Address[19] == 0;
-assign CS[2]= Address[15:4] == 12'hFF0 ;
-assign CS[3]= Address[15:9] == 7'h0E ;
+module top;
+bit CLK = '0;
+bit RESET = '0;
+logic [3:0] CS;
+
+Intel8088Pins I8088pins(CLK,RESET);
+Intel8088 P (I8088pins.Processor);
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(2)) M1(.I8088pins(I8088pins.Peripheral),.CS(CS[0]));
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(3)) M2(.I8088pins(I8088pins.Peripheral),.CS(CS[1]));
+MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(0)) I1(.I8088pins(I8088pins.Peripheral),.CS(CS[2]));
+MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(1)) I2(.I8088pins(I8088pins.Peripheral),.CS(CS[3]));
+
+assign CS[0] = I8088pins.Address[19] == 1;
+assign CS[1] = I8088pins.Address[19] == 0;
+assign CS[2]= I8088pins.Address[15:4] == 12'hFF0 ;
+assign CS[3]= I8088pins.Address[15:9] == 7'h0E ;
 
 // 8282 Latch to latch bus address
 always_latch
 begin
-if (ALE)
-	Address <= {A, AD};
+if (I8088pins.ALE)
+	I8088pins.Address <= {I8088pins.A, I8088pins.AD};
 end
 
 // 8286 transceiver
-assign Data =  (DTR & ~DEN) ? AD   : 'z;
-assign AD   = (~DTR & ~DEN) ? Data : 'z;
+assign I8088pins.Data =  (I8088pins.DTR & ~I8088pins.DEN) ? I8088pins.AD   : 'z;
+assign I8088pins.AD   = (~I8088pins.DTR & ~I8088pins.DEN) ? I8088pins.Data : 'z;
 
 
 always #50 CLK = ~CLK;

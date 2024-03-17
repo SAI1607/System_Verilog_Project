@@ -1,4 +1,4 @@
-module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=8,parameter file=0)(input logic CS,input logic WR,input RD,input bit RESET,input bit CLK,inout logic[7:0] Data,input logic ALE,input logic [19:0] Address,input logic IOM);
+module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=8,parameter file=0)(Intel8088Pins I8088pins,input logic CS);
 	logic LOAD;
 	logic OE;
     logic [data_bits-1:0] memory [(2**addr_bits)-1:0];
@@ -12,8 +12,8 @@ module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=
     } State_t;
 
     State_t State, NextState;
-	assign datain = memory[Address];
-	assign Data = OE ? datain : 'z;
+	assign datain = memory[I8088pins.Address];
+	assign I8088pins.Data = OE ? datain : 'z;
     
 	initial begin
 		case(file)
@@ -25,16 +25,16 @@ module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=
 		endcase
 	end
 
-	always@(posedge CLK) begin
+	always@(posedge I8088pins.CLK) begin
 	 if(LOAD) begin	
-		memory[Address] = Data;
+		memory[I8088pins.Address] = I8088pins.Data;
 	 end
      else begin
-		memory[Address]=memory[Address];
+		memory[I8088pins.Address]=memory[I8088pins.Address];
 	 end	 
 	end
-    always_ff @(posedge CLK) begin
-        if (RESET) begin
+    always_ff @(posedge I8088pins.CLK) begin
+        if (I8088pins.RESET) begin
             State <= T1; 
 		end
         else
@@ -44,16 +44,16 @@ module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=
         NextState = State;
         unique case (State)
             T1:  begin 
-						if (CS&&ALE&&(IOM==VALID)) begin
+						if (CS&&I8088pins.ALE&&(I8088pins.IOM==VALID)) begin
 							NextState = T2;
 						end
 					end
 			T2:  begin
-						if(!RD) 
+						if(!I8088pins.RD) 
 						begin
 							NextState = T3R;
 						end
-						else if(!WR) 
+						else if(!I8088pins.WR) 
 						begin
 							NextState = T3W;
 						end	
