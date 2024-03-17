@@ -25,7 +25,7 @@ module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=
 		endcase
 	end
 
-	always@(posedge I8088pins.CLK) begin
+	always_ff@(posedge I8088pins.CLK) begin
 	 if(LOAD) begin	
 		memory[I8088pins.Address] = I8088pins.Data;
 	 end
