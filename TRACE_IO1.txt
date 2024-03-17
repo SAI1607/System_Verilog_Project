@@ -1,0 +1,16 @@
+@ff00 96
+@ff01 5e
+@ff02 5a
+@ff03 7a
+@ff04 57
+@ff05 15
+@ff06 be
+@ff07 9b
+@ff08 a4
+@ff09 a1
+@ff0a ac
+@ff0b a9
+@ff0c 48
+@ff0d 2b
+@ff0e b5
+@ff0f 6a
