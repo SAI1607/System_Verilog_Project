@@ -34,8 +34,8 @@ logic [3:0] CS;
 
 Intel8088Pins I8088pins(CLK,RESET);
 Intel8088 P (I8088pins.Processor);
-MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(2)) M1(.I8088pins(I8088pins.Peripheral),.CS(CS[0]));
-MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(3)) M2(.I8088pins(I8088pins.Peripheral),.CS(CS[1]));
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(3)) M1(.I8088pins(I8088pins.Peripheral),.CS(CS[0]));
+MEMORY_IO #(.VALID(0),.addr_bits(20),.data_bits(8),.file(2)) M2(.I8088pins(I8088pins.Peripheral),.CS(CS[1]));
 MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(0)) I1(.I8088pins(I8088pins.Peripheral),.CS(CS[2]));
 MEMORY_IO #(.VALID(1),.addr_bits(16),.data_bits(8),.file(1)) I2(.I8088pins(I8088pins.Peripheral),.CS(CS[3]));
 
