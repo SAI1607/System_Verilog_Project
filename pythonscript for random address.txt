@@ -1,0 +1,77 @@
+IO2
+
+import random
+
+def generate_random_data(filename, start_address, end_address):
+    with open(filename, 'w') as file:
+        for address in range(start_address, end_address + 1):
+            data = random.randint(0, 255)
+            file.write(f'{address:04x} {data:02x}\n')
+
+start_address = 0x1c00
+end_address = 0x1dff
+filename = 'random_data.txt'
+
+generate_random_data(filename, start_address, end_address)
+print(f'Random data generated and saved to {filename}')
+------------------------------------------------------------------
+IO1
+
+
+import random
+
+def generate_random_data():
+    # Generate random 8-bit data
+    return random.randint(0, 255)
+
+def main():
+    # Define the address range
+    start_address = 0xff00
+    end_address = 0xff0f
+
+    # Generate random data for each address and write to file
+    with open("random_data.txt", "w") as file:
+        for address in range(start_address, end_address + 1):
+            data = generate_random_data()
+            file.write(f"{address:04x} {data:02x}\n")
+
+    print("Random data file generated successfully.")
+
+if __name__ == "__main__":
+    main()
+ 
+------------------------------------------------------------------------------------
+
+Mem1
+
+import random
+
+def generate_random_data():
+    with open("random_data.txt", "w") as file:
+        for address in range(0x00000, 0x80000):
+            data = random.randint(0, 255)  # Generate random 8-bit data
+            file.write(f"{address:05x} {data:02x}\n")  # Write address and data in hexadecimal format
+
+if __name__ == "__main__":
+    generate_random_data()
+
+--------------------------------------------------------------------------------------------
+mem2
+
+import random
+
+# Define the range of addresses
+start_address = 0x80000
+end_address = 0xfffff
+
+# Open a file for writing
+with open("random_data.txt", "w") as file:
+    # Iterate over each address in the range
+    for address in range(start_address, end_address + 1):
+        # Generate a random 8-bit data
+        data = random.randint(0, 255)
+        # Convert address and data to hexadecimal strings
+        address_hex = f"{address:06x}"
+        data_hex = f"{data:02x}"
+        # Write the address and data to the file
+        file.write(f"{address_hex} {data_hex}\n")
