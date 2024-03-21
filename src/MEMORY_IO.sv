@@ -27,10 +27,10 @@ module MEMORY_IO #(parameter VALID=1,parameter addr_bits=20,parameter data_bits=
 
 	always_ff@(posedge I8088pins.CLK) begin
 	 if(LOAD) begin	
-		memory[I8088pins.Address] = I8088pins.Data;
+		 memory[I8088pins.Address] <= I8088pins.Data;
 	 end
      else begin
-		memory[I8088pins.Address]=memory[I8088pins.Address];
+	     memory[I8088pins.Address]<=memory[I8088pins.Address];
 	 end	 
 	end
     always_ff @(posedge I8088pins.CLK) begin
